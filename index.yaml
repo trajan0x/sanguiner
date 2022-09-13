@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  omnirpc:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-09-13T00:24:26.127889892Z"
+    description: A omnirpc chart
+    digest: 0dec1e3c2d1938e5c09f8dcd3d2f431c2d34c6507cc2b13c5814bf726c43ddc2
+    name: omnirpc
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/omnirpc-0.1.0/omnirpc-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-09-13T00:24:26.127901993Z"
