@@ -3,6 +3,16 @@ entries:
   omnirpc:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2022-09-24T18:28:04.257746986Z"
+    description: A omnirpc chart
+    digest: 09f4be6103d5177c254a8c87feafd8104d87305a235598011e23cedcec6ebde5
+    name: omnirpc
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/omnirpc-0.1.1/omnirpc-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2022-09-13T00:24:26.127889892Z"
     description: A omnirpc chart
     digest: 0dec1e3c2d1938e5c09f8dcd3d2f431c2d34c6507cc2b13c5814bf726c43ddc2
@@ -11,4 +21,22 @@ entries:
     urls:
     - https://github.com/synapsecns/sanguine/releases/download/omnirpc-0.1.0/omnirpc-0.1.0.tgz
     version: 0.1.0
-generated: "2022-09-13T00:24:26.127901993Z"
+  scribe:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-09-24T18:28:04.408531267Z"
+    dependencies:
+    - name: mysql
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.3.2
+    - name: omnirpc
+      repository: file://../omnirpc/
+      version: 0.1.1
+    description: A Helm chart for Kubernetes
+    digest: 7218a26e133275337eff731fbb2a9ebd119e11e476cbe5b6de1412ca5685d394
+    name: scribe
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/scribe-0.1.0/scribe-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-09-24T18:28:04.408543567Z"
