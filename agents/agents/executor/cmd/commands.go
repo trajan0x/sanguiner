@@ -140,6 +140,7 @@ var ExecutorRunCommand = &cli.Command{
 
 		g, _ := errgroup.WithContext(c.Context)
 
+		fmt.Println(c.String(scribeTypeFlag.Name))
 		switch c.String(scribeTypeFlag.Name) {
 		case "embedded":
 			eventDB, err := scribeAPI.InitDB(c.Context, c.String(scribeDBFlag.Name), c.String(scribePathFlag.Name))
