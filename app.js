@@ -5,31 +5,33 @@ import express from 'express';
 
 
 //Setting up RPC providers:
+//@simon Need a list of all providers (Can be public) from somewhere else (sdk or interface)
 const arbitrumProvider = new JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const avalancheProvider = new JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-//Basic hello world
+//Intro Message for UI
 app.get('/', (req, res) => {
   res.send('Welcome to the Synapse Rest API for swap and bridge quotes')
 });
 
 //Setting up arguments
+//@simon Need a list of all chain ids... maybe can use supportedchainIds from the sdk? was just having package issues.
 const chainIds = [42161,43114];
 const providers = [ arbitrumProvider, avalancheProvider];
 
 //Set up a SynapseSDK Instance
 const Synapse = new SynapseSDK(chainIds, providers);
 
-
+//Swap get request
 app.get('/swap/:chain/:fromToken/:toToken/:amount', async(req,res) => {
   const chain = req.params.chain;
-  //Need logic here that takes in the chain and the token symbol and returns the token address for that chain (for both the to and From tokens) @simon
+  //@simon Need logic here that takes in the chain and the token symbol and returns the token address for that chain (for both the to and From tokens) @simon
   const fromToken = req.params.fromToken;
   const toToken = req.params.toToken;
-  //Need logic here that takes in the amount and multiplies it by the decimals for that token on its respective chain @simon
+  // @simon Need logic here that takes in the amount and multiplies it by the decimals for that token on its respective chain
   const amount = req.params.amount;
 
   const resp = await Synapse.swapQuote(chain, fromToken, toToken, BigNumber.from(amount));
@@ -41,13 +43,15 @@ app.get('/swap/:chain/:fromToken/:toToken/:amount', async(req,res) => {
   res.json(resp);
 });
 
+
+//Bridge get request
 app.get('/bridge/:fromChain/:toChain/:fromToken/:toToken/:amount', async(req,res) => {
   const fromChain = req.params.fromChain;
   const toChain = req.params.toChain;
-  //Need logic here that takes in the chain and the token symbol and returns the token address for that chain (for both the to and From tokens) @simon
+  //@simon Need logic here that takes in the chain and the token symbol and returns the token address for that chain (for both the to and From tokens) @simon
   const fromToken = req.params.fromToken;
   const toToken = req.params.toToken;
-  //Need logic here that takes in the amount and multiplies it by the decimals for that token on its respective chain @simon
+  //@simon Need logic here that takes in the amount and multiplies it by the decimals for that token on its respective chain @simon
   const amount = req.params.amount;
 
   const resp = await Synapse.bridgeQuote(fromChain,toChain, fromToken, toToken, BigNumber.from(amount));
