@@ -1,5 +1,5 @@
 {
-  "name": "rest-api",
+  "name": "@synapsecns/rest-api",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -15,7 +15,8 @@
     "@ethersproject/providers": "^5.6.1",
     "@ethersproject/bignumber": "^5.6.1",
     "bignumber": "^1.1.0",
-    "@synapsecns/sdk-router": "./packages/sdk-router"
+    "@synapsecns/sdk-router": "./packages/sdk-router",
+    "ethers": "5.7.2"
   },
   "description": ""
 }
