@@ -3,7 +3,7 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { SynapseSDK } from '@synapsecns/sdk-router';
 import { BigNumber } from '@ethersproject/bignumber';
 import express from 'express';
-import { SupportedChainId } from '@synapsecns/sdk-router/dist/constants';
+import { allChains, rpcProviders } from 'index.js';
 
 //Thoughts:
 //Setting up RPC providers:
@@ -16,7 +16,7 @@ const port = process.env.PORT || 3000;
 
 //Basic hello world
 app.get('/', (req, res) => {
-  res.send(SupportedChainId)
+  res.send(allChains,rpcProviders)
 });
 
 //Setting up arguments
