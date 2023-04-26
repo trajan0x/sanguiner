@@ -3,11 +3,10 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { SynapseSDK } from '@synapsecns/sdk-router';
 import { BigNumber } from '@ethersproject/bignumber';
 import express from 'express';
-import { allChains, rpcProviders } from './index';
+import { allChains, rpcProviders } from '../index.js';
 
-//Thoughts:
+
 //Setting up RPC providers:
-// const ethereumProvider = BaseProvider('https://rpc.ankr.com/eth')
 const arbitrumProvider = new JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const avalancheProvider = new JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc');
 
