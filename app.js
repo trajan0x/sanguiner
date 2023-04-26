@@ -1,0 +1,67 @@
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { Provider } from '@ethersproject/abstract-provider'
+import { SynapseSDK } from '@synapsecns/sdk-router';
+import { BigNumber } from '@ethersproject/bignumber';
+import express from 'express';
+
+//Thoughts:
+// Need to think about best way to structure the get requests (for swap quote have certain args and then just fill in the function with the stuff)
+//Setting up RPC providers:
+// const ethereumProvider = BaseProvider('https://rpc.ankr.com/eth')
+const arbitrumProvider = new JsonRpcProvider('https://arb1.arbitrum.io/rpc');
+const avalancheProvider = new JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc');
+
+const app = express();
+const port = 3000;
+
+
+//Basic hello world
+app.get('/', (req, res) => {
+  res.send('Hello World')
+})
+//Setting up arguments
+const chainIds = [42161,43114];
+const providers = [ arbitrumProvider, avalancheProvider];
+
+//Set up a SynapseSDK Instance
+const Synapse = new SynapseSDK(chainIds, providers);
+
+
+app.get('/swap/:chain/:fromToken/:toToken/:amount', async(req,res) => {
+  const chain = req.params.chain;
+  const fromToken = req.params.fromToken;
+  const toToken = req.params.toToken;
+  const amount = req.params.amount;
+  // const {routerAddress, maxAmountOut, query} = await Synapse.swapQuote(chain, fromToken, toToken, BigNumber.from(amount));
+  //hardcoded
+  console.log("before")
+  const resp = await Synapse.swapQuote(42161, '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', BigNumber.from(100000000));
+  res.json(resp);
+});
+
+async function swapQuote(req,res) {
+  const chain = req.params.chain;
+  const fromToken = req.params.fromToken;
+  const toToken = req.params.toToken;
+  const amount = req.params.amount;
+  const {routerAddress, maxAmountOut, query} = await Synapse.swapQuote(chain, fromToken, toToken, BigNumber.from(amount));
+
+  res.json(maxAmountOut)
+}
+
+//Basic add function
+app.get('/add/:number', async (req,res) => {
+  const num = parseInt(req.params.number);
+  const new_num = num + 5;
+
+  res.json(new_num);
+});
+
+
+
+
+app.listen(port, () => {
+  console.log('Server listening at http://localhost:${port}')
+});
+
+
