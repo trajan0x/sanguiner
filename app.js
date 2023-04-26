@@ -12,7 +12,7 @@ const arbitrumProvider = new JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const avalancheProvider = new JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 
 //Basic hello world
@@ -64,7 +64,7 @@ app.get('/bridge/:fromChain/:toChain/:fromToken/:toToken/:amount', async(req,res
 
 
 app.listen(port, () => {
-  console.log('Server listening at http://localhost:${port}')
+  console.log('Server listening at ${port}')
 });
 
 
