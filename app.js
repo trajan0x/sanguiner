@@ -3,7 +3,7 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { SynapseSDK } from '@synapsecns/sdk-router';
 import { BigNumber } from '@ethersproject/bignumber';
 import express from 'express';
-import { allChains, rpcProviders } from 'index.js';
+import { allChains, rpcProviders } from './index';
 
 //Thoughts:
 //Setting up RPC providers:
