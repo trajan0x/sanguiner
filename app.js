@@ -29,35 +29,38 @@ const Synapse = new SynapseSDK(chainIds, providers);
 
 app.get('/swap/:chain/:fromToken/:toToken/:amount', async(req,res) => {
   const chain = req.params.chain;
+  //Need logic here that takes in the chain and the token symbol and returns the token address for that chain (for both the to and From tokens) @simon
   const fromToken = req.params.fromToken;
   const toToken = req.params.toToken;
+  //Need logic here that takes in the amount and multiplies it by the decimals for that token on its respective chain @simon
   const amount = req.params.amount;
-  // const {routerAddress, maxAmountOut, query} = await Synapse.swapQuote(chain, fromToken, toToken, BigNumber.from(amount));
-  //hardcoded
-  console.log("before")
-  const resp = await Synapse.swapQuote(42161, '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', BigNumber.from(100000000));
+
+  const resp = await Synapse.swapQuote(chain, fromToken, toToken, BigNumber.from(amount));
+
+  //Hardcoded implementation for testing purposes only
+  // const resp = await Synapse.swapQuote(42161, '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', BigNumber.from(100000000));
+
+
   res.json(resp);
 });
 
-async function swapQuote(req,res) {
-  const chain = req.params.chain;
+app.get('/bridge/:fromChain/:toChain/:fromToken/:toToken/:amount', async(req,res) => {
+  const fromChain = req.params.fromChain;
+  const toChain = req.params.toChain;
+  //Need logic here that takes in the chain and the token symbol and returns the token address for that chain (for both the to and From tokens) @simon
   const fromToken = req.params.fromToken;
   const toToken = req.params.toToken;
+  //Need logic here that takes in the amount and multiplies it by the decimals for that token on its respective chain @simon
   const amount = req.params.amount;
-  const {routerAddress, maxAmountOut, query} = await Synapse.swapQuote(chain, fromToken, toToken, BigNumber.from(amount));
 
-  res.json(maxAmountOut)
-}
+  const resp = await Synapse.bridgeQuote(fromChain,toChain, fromToken, toToken, BigNumber.from(amount));
 
-//Basic add function
-app.get('/add/:number', async (req,res) => {
-  const num = parseInt(req.params.number);
-  const new_num = num + 5;
+  //Hardcoded implementation for testing purposes only
+  // const resp = await Synapse.swapQuote(42161, '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9', BigNumber.from(100000000));
 
-  res.json(new_num);
+
+  res.json(resp);
 });
-
-
 
 
 app.listen(port, () => {
