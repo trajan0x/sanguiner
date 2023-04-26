@@ -3,9 +3,9 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { SynapseSDK } from '@synapsecns/sdk-router';
 import { BigNumber } from '@ethersproject/bignumber';
 import express from 'express';
+import { SupportedChainId } from '@synapsecns/sdk-router/dist/constants';
 
 //Thoughts:
-// Need to think about best way to structure the get requests (for swap quote have certain args and then just fill in the function with the stuff)
 //Setting up RPC providers:
 // const ethereumProvider = BaseProvider('https://rpc.ankr.com/eth')
 const arbitrumProvider = new JsonRpcProvider('https://arb1.arbitrum.io/rpc');
@@ -14,11 +14,11 @@ const avalancheProvider = new JsonRpcProvider('https://api.avax.network/ext/bc/C
 const app = express();
 const port = process.env.PORT || 3000;
 
-
 //Basic hello world
 app.get('/', (req, res) => {
-  res.send('Hello World')
+  res.send(SupportedChainId)
 });
+
 //Setting up arguments
 const chainIds = [42161,43114];
 const providers = [ arbitrumProvider, avalancheProvider];
