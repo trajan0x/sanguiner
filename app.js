@@ -18,7 +18,7 @@ const port = process.env.PORT || 3000;
 //Basic hello world
 app.get('/', (req, res) => {
   res.send('Hello World')
-})
+});
 //Setting up arguments
 const chainIds = [42161,43114];
 const providers = [ arbitrumProvider, avalancheProvider];
