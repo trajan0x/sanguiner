@@ -1,6 +1,6 @@
 {
   "name": "@synapsecns/rest-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -8,7 +8,7 @@
   },
   "type": "module",
   "keywords": [],
-  "author": "",
+  "author": "Contributor",
   "license": "ISC",
   "dependencies": {
     "@ethersproject/bignumber": "^5.6.1",
@@ -18,5 +18,5 @@
     "ethers": "5.7.2",
     "express": "^4.18.2"
   },
-  "description": ""
+  "description": "A node.js project exposing a rest api for synapse sdk quotes"
 }
