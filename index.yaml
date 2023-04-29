@@ -442,6 +442,25 @@ entries:
   explorer:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2023-04-29T19:45:11.845123398Z"
+    dependencies:
+    - condition: omnirpc.enabled
+      name: omnirpc
+      repository: file://../omnirpc/
+      version: 0.2.2
+    - condition: clickhouse.enabled
+      name: clickhouse
+      repository: https://sentry-kubernetes.github.io/charts
+      version: 3.1.3
+    description: A Helm chart for Kubernetes
+    digest: 442ac97b546b21e930852e27ac8d9aff32c0dd91542c8f3a6b1a43dc2df15452
+    name: explorer
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/explorer-0.2.4/explorer-0.2.4.tgz
+    version: 0.2.4
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2023-04-26T20:02:45.162467004Z"
     dependencies:
     - condition: omnirpc.enabled
@@ -804,4 +823,4 @@ entries:
     urls:
     - https://github.com/synapsecns/sanguine/releases/download/scribe-0.1.0/scribe-0.1.0.tgz
     version: 0.1.0
-generated: "2023-04-26T20:02:45.496766733Z"
+generated: "2023-04-29T19:45:11.845402501Z"
