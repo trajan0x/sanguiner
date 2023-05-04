@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from "lodash"
 
 /**
  * gives undefined if hash invalid/ not 64 len
@@ -15,3 +15,4 @@ export function validateAndParseHash(hash) {
     console.error(`${hash} is not a valid txnhash/hash.`)
   }
 }
+
