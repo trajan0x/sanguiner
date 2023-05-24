@@ -88,7 +88,11 @@ describe('Bridge Page with Metamask Wallet Connected', () => {
   it('Connects with Metamask', () => {
     cy.visit('http://localhost:3000')
     // find "Connect Wallet" button and click it
-    cy.contains('Connect Wallet').click()
+    cy.get('[data-test-id="connect-wallet-button"]')
+      .should('be.visible')
+      .click()
+
+    cy.contains('MetaMask').click()
     // assuming there is only metamask popping up
     // always important to switch between metamask and cypress window
     cy.switchToMetamaskWindow()

@@ -9,9 +9,11 @@ export default defineConfig({
     },
     supportFile: 'cypress/support/e2e.ts',
   },
+  viewportWidth: 1280,
+  viewportHeight: 720,
   video: false,
   trashAssetsBeforeRuns: true,
   screenshotOnRunFailure: true,
   screenshotsFolder: 'cypress/visual-states/current-screenshots',
   videosFolder: 'cypress/visual-states/current-videos',
-});
+})

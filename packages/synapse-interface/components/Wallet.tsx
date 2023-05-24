@@ -65,6 +65,7 @@ export const Wallet = () => {
                 if (!connectedAddress) {
                   return (
                     <button
+                      data-test-id="connect-wallet-button"
                       onClick={openConnectModal}
                       type="button"
                       className="text-sm flex items-center group cursor-pointer text-white outline-none active:outline-none ring-none transition-all duration-100 transform-gpu w-full rounded-lg py-2 pl-2.5 pr-2.5 group focus:outline-none focus:ring-0 hover:bg-opacity-70 bg-bgLight hover:bg-bgLightest focus:bg-bgLightest active:bg-bgLightest border-transparent hover:!border-blue-500 flex-shrink border border-none"
