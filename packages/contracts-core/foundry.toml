@@ -17,6 +17,9 @@ runs = 2000
 avalanche = "${RPC_AVALANCHE}"
 optimism = "${RPC_OPTIMISM}"
 polygon = "${RPC_POLYGON}"
+sepolia = "${RPC_SEPOLIA}"
+fuji = "${RPC_FUJI}"
+synchain_devnet = "${RPC_SYNCHAIN_DEVNET}"
 
 [etherscan]
 avalanche = { key = "${ETHERSCAN_AVALANCHE_KEY}" }

@@ -22,9 +22,9 @@ contract DeployerUtils is Script {
     string private constant DEPLOYMENTS = "deployments/";
     string private constant DEPLOY_CONFIGS = "script/configs/";
 
-    // TODO: this is only deployed on 7 chains, deploy our own factory for prod deployments
+    // TODO: this is only deployed on testnets, deploy our own factory for prod deployments
     ICreate3Factory internal constant FACTORY =
-        ICreate3Factory(0x9fBB3DF7C40Da2e5A0dE984fFE2CCB7C47cd0ABf);
+        ICreate3Factory(0x7D7Ecf1A283cCFCdAb0485867CAf199416CA152b);
 
     /// @dev Whether the script will be broadcasted or not
     bool internal isBroadcasted = false;
@@ -70,7 +70,8 @@ contract DeployerUtils is Script {
 
     /// @notice Returns name of the current chain.
     function getChainAlias() public returns (string memory) {
-        return getChain(block.chainid).chainAlias;
+        // Don't do this in production: workaround for forge not picking this up from foundry.toml
+        return block.chainid == 901 ? "synchain_devnet" : getChain(block.chainid).chainAlias;
     }
 
     /*╔══════════════════════════════════════════════════════════════════════╗*\
@@ -84,8 +85,10 @@ contract DeployerUtils is Script {
         bytes memory constructorArgs
     ) internal returns (address deployment) {
         require(Address.isContract(address(FACTORY)), "Factory not deployed");
+        // Use different salts for testnet
+        bytes32 salt = keccak256(abi.encodePacked(contractName, "Testnet"));
         deployment = FACTORY.deploy(
-            keccak256(bytes(contractName)), // salt
+            salt,
             abi.encodePacked(creationCode, constructorArgs) // creation code with appended constructor args
         );
         require(deployment != address(0), "Factory deployment failed");

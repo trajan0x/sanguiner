@@ -23,7 +23,7 @@ contract DeployMessaging002Script is DeployerUtils {
     string public constant SYSTEM_ROUTER_NAME = "SystemRouter";
     string public constant SUMMIT_NAME = "Summit";
 
-    string public constant MESSAGING_002 = "Messaging002";
+    string public constant MESSAGING_002 = "Messaging002Testnet";
 
     BondingSecondary public bondingManager;
     Destination public destination;
@@ -192,8 +192,12 @@ contract DeployMessaging002Script is DeployerUtils {
         // Check if broadcaster is the owner
         if (sc.owner() == broadcasterAddress) {
             // Transfer ownership
-            sc.transferOwnership(owner);
-            console.log("   %s: new owner is %s", address(sc), owner);
+            if (owner == broadcasterAddress) {
+                console.log("   %s: new owner is broadcaster, skipping", address(sc));
+            } else {
+                sc.transferOwnership(owner);
+                console.log("   %s: new owner is %s", address(sc), owner);
+            }
         } else {
             console.log("   %s: broadcaster is not owner! Owner: %s", address(sc), sc.owner());
         }
