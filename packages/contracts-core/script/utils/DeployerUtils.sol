@@ -24,7 +24,7 @@ contract DeployerUtils is Script {
 
     // TODO: this is only deployed on testnets, deploy our own factory for prod deployments
     ICreate3Factory internal constant FACTORY =
-        ICreate3Factory(0x7D7Ecf1A283cCFCdAb0485867CAf199416CA152b);
+        ICreate3Factory(0x68F48765A1fBCd59444857289AD3B5b58066dB7a);
 
     /// @dev Whether the script will be broadcasted or not
     bool internal isBroadcasted = false;
@@ -71,7 +71,7 @@ contract DeployerUtils is Script {
     /// @notice Returns name of the current chain.
     function getChainAlias() public returns (string memory) {
         // Don't do this in production: workaround for forge not picking this up from foundry.toml
-        return block.chainid == 901 ? "synchain_devnet" : getChain(block.chainid).chainAlias;
+        return block.chainid == 901 ? "synchain_sepolia" : getChain(block.chainid).chainAlias;
     }
 
     /*╔══════════════════════════════════════════════════════════════════════╗*\
