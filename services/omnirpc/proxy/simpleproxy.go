@@ -111,6 +111,8 @@ func (r *SimpleProxy) ProxyRequest(c *gin.Context) (err error) {
 		return fmt.Errorf("could not marshal request")
 	}
 
+	span.SetAttributes(attribute.String("rewritten-body", string(body)))
+
 	req := r.client.NewRequest()
 	resp, err := req.
 		SetContext(ctx).
@@ -125,6 +127,9 @@ func (r *SimpleProxy) ProxyRequest(c *gin.Context) (err error) {
 		return fmt.Errorf("could not get response from %s: %w", r.proxyURL, err)
 	}
 
-	c.Data(resp.StatusCode(), gin.MIMEJSON, resp.Body())
+	retResp := resp.Body()
+	span.SetAttributes(attribute.String("return-value", string(retResp)))
+
+	c.Data(resp.StatusCode(), gin.MIMEJSON, retResp)
 	return nil
 }
