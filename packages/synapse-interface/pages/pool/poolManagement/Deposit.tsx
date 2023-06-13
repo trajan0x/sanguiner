@@ -93,8 +93,8 @@ const Deposit = ({
 
     function replaceKey(obj, oldKey, newKey) {
       if (obj.hasOwnProperty(oldKey)) {
-        obj[newKey] = obj[oldKey] // Step 1: Assign the value of the old key to the new key
-        delete obj[oldKey] // Step 2: Delete the old key
+        obj[newKey] = obj[oldKey]
+        delete obj[oldKey]
       }
       return obj
     }
@@ -102,6 +102,8 @@ const Deposit = ({
     const transformedInput = poolHasWeth
       ? replaceKey(filteredInputValue, nativeEthAddress, wethAddress)
       : filteredInputValue
+
+    console.log('transformedInput: ', transformedInput)
     return transformedInput
   }
 
@@ -114,19 +116,20 @@ const Deposit = ({
 
       // console.log('inputSum before conditional: ', inputSum)
       if (poolData.totalLocked.gt(0) && inputSum.gt(0)) {
-        const { amount, routerAddress } =
-          await synapseSDK.calculateAddLiquidity(
-            chainId,
-            pool.swapAddresses[chainId],
-            filteredInputValue.bn
-          )
-
-        console.log('routerAddress:', routerAddress)
-        transformCalculateAddLiquidityInput(
+        const input = transformCalculateAddLiquidityInput(
           chainId,
           pool,
           filteredInputValue.bn
         )
+
+        const { amount, routerAddress } =
+          await synapseSDK.calculateAddLiquidity(
+            chainId,
+            pool.swapAddresses[chainId],
+            input
+          )
+
+        console.log('routerAddress:', routerAddress)
         // console.log('synapseSDK:', synapseSDK)
         // console.log('amount: ', amount)
         // console.log('test: ', test)
@@ -181,12 +184,12 @@ const Deposit = ({
 
         // TODO: DOUBLE CHECK THIS
 
-        let priceImpactBP = priceImpact
-          ? Number(
-              formatBNToString(priceImpact.mul(BigNumber.from(-100)), 18, 2)
-            )
-          : 0
-        let priceImpactBP2 = Number(formatBNToString(p2.mul(100), 18, 2))
+        // let priceImpactBP = priceImpact
+        //   ? Number(
+        //       formatBNToString(priceImpact.mul(BigNumber.from(-100)), 18, 2)
+        //     )
+        //   : 0
+        // let priceImpactBP2 = Number(formatBNToString(p2.mul(100), 18, 2))
 
         // console.log(`priceImpactBP`, priceImpactBP)
         // console.log(`priceImpactBp2`, priceImpactBP2)
@@ -198,6 +201,7 @@ const Deposit = ({
           routerAddress: poolAddress,
         })
       } else {
+        console.log('toodoooo')
         setDepositQuote(DEFAULT_DEPOSIT_QUOTE)
       }
     } catch (e) {
@@ -223,14 +227,14 @@ const Deposit = ({
 
   useEffect(() => {
     calculateMaxDeposits()
-  }, [inputValue, time, pool, chainId, address])
+  }, [inputValue, pool, chainId, address])
 
   useEffect(() => {
-    // console.log(`depositQuote`, depositQuote)
-    // console.log(
-    //   `depositQuote,priceImpact?.gt(Zero)`,
-    //   depositQuote.priceImpact?.gt(Zero)
-    // )
+    console.log(`depositQuote`, depositQuote)
+    console.log(
+      `depositQuote,priceImpact?.gt(Zero)`,
+      depositQuote.priceImpact?.gt(Zero)
+    )
     if (depositQuote.priceImpact && !depositQuote.priceImpact?.eq(Zero)) {
       setShowPriceImpact(true)
     } else {
