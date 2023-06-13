@@ -129,9 +129,8 @@ const Deposit = ({
             input
           )
 
-        console.log('routerAddress:', routerAddress)
+        // console.log('routerAddress:', routerAddress)
         // console.log('synapseSDK:', synapseSDK)
-        // console.log('amount: ', amount)
         // console.log('test: ', test)
         // console.log('chainId: ', chainId)
 
@@ -171,16 +170,11 @@ const Deposit = ({
 
         // console.log(`p2, p2`, p2)
 
-        const priceImpact = calculateExchangeRate(
-          inputSum,
-          18,
-          inputSum.sub(amount),
-          18
-        )
+        const priceImpact = calculateExchangeRate(inputSum, 18, amount, 18)
 
-        // console.log('inputSum after conditional: ', inputSum)
-        // console.log('amount from SDK calculateAddLiquidity: ', amount)
-        // console.log('priceImpact after calculateExchangeRate: ', priceImpact)
+        console.log('amount: ', amount)
+        console.log('inputSum: ', inputSum)
+        console.log('priceImpact:', priceImpact)
 
         // TODO: DOUBLE CHECK THIS
 
@@ -201,7 +195,6 @@ const Deposit = ({
           routerAddress: poolAddress,
         })
       } else {
-        console.log('toodoooo')
         setDepositQuote(DEFAULT_DEPOSIT_QUOTE)
       }
     } catch (e) {
