@@ -304,15 +304,25 @@ class SynapseSDK {
     chainId: number,
     poolAddress: string,
     amounts: Record<string, BigNumber>
-  ): Promise<{ amount: BigNumber; routerAddress: string }> {
+  ): Promise<{ amount: BigNumber; routerAddress: string; test: string }> {
     const router: SynapseRouter = this.synapseRouters[chainId]
     const poolTokens = await router.routerContract.poolTokens(poolAddress)
     const amountArr: BigNumber[] = []
     poolTokens.map((token) => {
       amountArr.push(amounts[token.token] ?? Zero)
     })
+    return {
+      amount: BigNumber.from(20),
+      routerAddress: '123',
+      test: 'burp',
+    }
+
     if (amountArr.filter((amount) => !amount.isZero()).length === 0) {
-      return { amount: Zero, routerAddress: router.routerContract.address }
+      return {
+        amount: Zero,
+        routerAddress: router.routerContract.address,
+        test: 'hit here',
+      }
     }
     return {
       amount: await router.routerContract.calculateAddLiquidity(
@@ -320,6 +330,7 @@ class SynapseSDK {
         amountArr
       ),
       routerAddress: router.routerContract.address,
+      test: 'working',
     }
   }
 
