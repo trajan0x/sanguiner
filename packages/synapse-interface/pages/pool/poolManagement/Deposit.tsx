@@ -82,6 +82,9 @@ const Deposit = ({
         return
       }
       let inputSum = sumBigNumbersFromState()
+
+      console.log('inputValue before conditional: ', inputValue)
+      console.log('inputSum before conditional: ', inputSum)
       if (poolData.totalLocked.gt(0) && inputSum.gt(0)) {
         const { amount } = await synapseSDK.calculateAddLiquidity(
           chainId,
@@ -105,6 +108,11 @@ const Deposit = ({
           inputSum.sub(amount),
           18
         )
+
+        console.log('inputSum after conditional: ', inputSum)
+        console.log('amount from SDK calculateAddLiquidity: ', amount)
+        console.log('priceImpact after calculateExchangeRate: ', priceImpact)
+
         // TODO: DOUBLE CHECK THIS
         setDepositQuote({
           priceImpact,
@@ -301,9 +309,9 @@ const Deposit = ({
         )}
       </div>
       {actionBtn}
-      {/* {depositQuote.priceImpact && depositQuote.priceImpact?.gt(Zero) && (
+      {depositQuote.priceImpact && depositQuote.priceImpact?.gt(Zero) && (
         <PriceImpactDisplay priceImpact={depositQuote.priceImpact} />
-      )} */}
+      )}
     </div>
   )
 }
