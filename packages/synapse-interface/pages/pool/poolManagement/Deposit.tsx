@@ -76,17 +76,33 @@ const Deposit = ({
   // @params: pool object, filteredInputValue
   // output: object to pass into calculateAddLiquidity() SDK call
   const transformCalculateAddLiquidityInput = (
+    chainId: number,
     pool: Token,
-    filteredInputValue?: any
-  ) => {
+    filteredInputValue?: Record<string, BigNumber>
+  ): Record<string, BigNumber> => {
     const wethIndex = _.findIndex(
       pool.poolTokens,
       (t) => t.symbol == WETH.symbol
     )
-
     const poolHasWeth: boolean = wethIndex > 0
 
-    console.log('poolHasWeth: ', poolHasWeth)
+    const nativeEthAddress = '0x0000000000000000000000000000000000000000'
+    const wethAddress = poolHasWeth
+      ? pool.poolTokens[wethIndex].addresses[chainId]
+      : null
+
+    function replaceKey(obj, oldKey, newKey) {
+      if (obj.hasOwnProperty(oldKey)) {
+        obj[newKey] = obj[oldKey] // Step 1: Assign the value of the old key to the new key
+        delete obj[oldKey] // Step 2: Delete the old key
+      }
+      return obj
+    }
+
+    const transformedInput = poolHasWeth
+      ? replaceKey(filteredInputValue, nativeEthAddress, wethAddress)
+      : filteredInputValue
+    return transformedInput
   }
 
   const calculateMaxDeposits = async () => {
@@ -98,13 +114,19 @@ const Deposit = ({
 
       // console.log('inputSum before conditional: ', inputSum)
       if (poolData.totalLocked.gt(0) && inputSum.gt(0)) {
-        const { amount, test } = await synapseSDK.calculateAddLiquidity(
+        const { amount, routerAddress } =
+          await synapseSDK.calculateAddLiquidity(
+            chainId,
+            pool.swapAddresses[chainId],
+            filteredInputValue.bn
+          )
+
+        console.log('routerAddress:', routerAddress)
+        transformCalculateAddLiquidityInput(
           chainId,
-          pool.swapAddresses[chainId],
+          pool,
           filteredInputValue.bn
         )
-
-        transformCalculateAddLiquidityInput(pool)
         // console.log('synapseSDK:', synapseSDK)
         // console.log('amount: ', amount)
         // console.log('test: ', test)
