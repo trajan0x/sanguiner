@@ -76,8 +76,10 @@ const Deposit = ({
       let inputSum = sumBigNumbers(pool, filteredInputValue, chainId)
 
       console.log('inputValue before conditional: ', inputValue)
-      console.log('inputSum before conditional: ', inputSum)
+      // console.log('inputSum before conditional: ', inputSum)
       if (poolData.totalLocked.gt(0) && inputSum.gt(0)) {
+        console.log('filteredInputValue: ', filteredInputValue.bn)
+
         const { amount } = await synapseSDK.calculateAddLiquidity(
           chainId,
           poolAddress,
@@ -104,12 +106,12 @@ const Deposit = ({
         )
         // minToMint = subtractSlippage(minToMint, slippageSelected, slippageCustom)
 
-        console.log(`tokenInput`, tokenInputAmount)
-        console.log(`tokenoutput`, tokenOutputAmount)
+        // console.log(`tokenInput`, tokenInputAmount)
+        // console.log(`tokenoutput`, tokenOutputAmount)
 
         const p2 = calculatePriceImpact(tokenInputAmount, tokenOutputAmount)
 
-        console.log(`p2, p2`, p2)
+        // console.log(`p2, p2`, p2)
 
         const priceImpact = calculateExchangeRate(
           inputSum,
@@ -124,9 +126,6 @@ const Deposit = ({
 
         // TODO: DOUBLE CHECK THIS
 
-        console.log(`inputSum`, inputSum)
-        console.log(`amount`, amount)
-
         let priceImpactBP = priceImpact
           ? Number(
               formatBNToString(priceImpact.mul(BigNumber.from(-100)), 18, 2)
@@ -138,7 +137,8 @@ const Deposit = ({
         // console.log(`priceImpactBp2`, priceImpactBP2)
 
         setDepositQuote({
-          priceImpact: p2,
+          // priceImpact: p2,
+          priceImpact: priceImpact,
           allowances,
           routerAddress: poolAddress,
         })
