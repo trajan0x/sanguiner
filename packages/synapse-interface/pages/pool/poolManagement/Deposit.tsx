@@ -68,6 +68,27 @@ const Deposit = ({
 
   const { poolAddress } = getSwapDepositContractFields(pool, chainId)
 
+  console.log('inputValue.bn: ', inputValue.bn)
+  console.log('pool: ', pool)
+  console.log('pool.poolTokens: ', pool.poolTokens)
+  console.log('filteredInputValue.bn: ', filteredInputValue.bn)
+
+  // @params: pool object, filteredInputValue
+  // output: object to pass into calculateAddLiquidity() SDK call
+  const transformCalculateAddLiquidityInput = (
+    pool: Token,
+    filteredInputValue?: any
+  ) => {
+    const wethIndex = _.findIndex(
+      pool.poolTokens,
+      (t) => t.symbol == WETH.symbol
+    )
+
+    const poolHasWeth: boolean = wethIndex > 0
+
+    console.log('poolHasWeth: ', poolHasWeth)
+  }
+
   const calculateMaxDeposits = async () => {
     try {
       if (poolUserData == null || address == null) {
@@ -75,16 +96,28 @@ const Deposit = ({
       }
       let inputSum = sumBigNumbers(pool, filteredInputValue, chainId)
 
-      console.log('inputValue before conditional: ', inputValue)
       // console.log('inputSum before conditional: ', inputSum)
       if (poolData.totalLocked.gt(0) && inputSum.gt(0)) {
-        console.log('filteredInputValue: ', filteredInputValue.bn)
-
-        const { amount } = await synapseSDK.calculateAddLiquidity(
+        const { amount, test } = await synapseSDK.calculateAddLiquidity(
           chainId,
-          poolAddress,
+          pool.swapAddresses[chainId],
           filteredInputValue.bn
         )
+
+        transformCalculateAddLiquidityInput(pool)
+        // console.log('synapseSDK:', synapseSDK)
+        // console.log('amount: ', amount)
+        // console.log('test: ', test)
+        // console.log('chainId: ', chainId)
+
+        // console.log(
+        //   'filteredInputValue[0].isZero(): ',
+        //   filteredInputValue.bn[0].isZero()
+        // )
+        // console.log(
+        //   'filteredInputValue[1].isZero(): ',
+        //   filteredInputValue.bn[1].isZero()
+        // )
 
         let allowances: Record<string, BigNumber> = {}
         for (const [tokenAddress, value] of Object.entries(
@@ -120,9 +153,9 @@ const Deposit = ({
           18
         )
 
-        console.log('inputSum after conditional: ', inputSum)
-        console.log('amount from SDK calculateAddLiquidity: ', amount)
-        console.log('priceImpact after calculateExchangeRate: ', priceImpact)
+        // console.log('inputSum after conditional: ', inputSum)
+        // console.log('amount from SDK calculateAddLiquidity: ', amount)
+        // console.log('priceImpact after calculateExchangeRate: ', priceImpact)
 
         // TODO: DOUBLE CHECK THIS
 
@@ -171,11 +204,11 @@ const Deposit = ({
   }, [inputValue, time, pool, chainId, address])
 
   useEffect(() => {
-    console.log(`depositQuote`, depositQuote)
-    console.log(
-      `depositQuote,priceImpact?.gt(Zero)`,
-      depositQuote.priceImpact?.gt(Zero)
-    )
+    // console.log(`depositQuote`, depositQuote)
+    // console.log(
+    //   `depositQuote,priceImpact?.gt(Zero)`,
+    //   depositQuote.priceImpact?.gt(Zero)
+    // )
     if (depositQuote.priceImpact && !depositQuote.priceImpact?.eq(Zero)) {
       setShowPriceImpact(true)
     } else {
