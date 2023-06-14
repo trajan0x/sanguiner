@@ -16,7 +16,9 @@ export const calculateExchangeRate = (
       BigNumber.from(10).pow(18 - tokenPrecisionFrom)
     )
 
-    return increasedPrecisionAmountTo.div(increasedPrecisionAmountFrom)
+    const ratio = increasedPrecisionAmountTo.div(increasedPrecisionAmountFrom)
+
+    return 1 - ratio
   } else {
     return Zero
   }
