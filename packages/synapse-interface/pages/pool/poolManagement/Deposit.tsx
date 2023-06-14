@@ -68,13 +68,6 @@ const Deposit = ({
 
   const { poolAddress } = getSwapDepositContractFields(pool, chainId)
 
-  console.log('inputValue.bn: ', inputValue.bn)
-  console.log('pool: ', pool)
-  console.log('pool.poolTokens: ', pool.poolTokens)
-  console.log('filteredInputValue.bn: ', filteredInputValue.bn)
-
-  // @params: pool object, filteredInputValue
-  // output: object to pass into calculateAddLiquidity() SDK call
   const transformCalculateAddLiquidityInput = (
     chainId: number,
     pool: Token,
@@ -85,7 +78,6 @@ const Deposit = ({
       (t) => t.symbol == WETH.symbol
     )
     const poolHasWeth: boolean = wethIndex > 0
-
     const nativeEthAddress = '0x0000000000000000000000000000000000000000'
     const wethAddress = poolHasWeth
       ? pool.poolTokens[wethIndex].addresses[chainId]
