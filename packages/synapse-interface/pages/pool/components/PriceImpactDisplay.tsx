@@ -1,22 +1,19 @@
 import { formatBNToString } from '@bignumber/format'
 import { BigNumber } from '@ethersproject/bignumber'
+import { WeiPerEther } from '@ethersproject/constants'
 
 const PriceImpactDisplay = ({ priceImpact }: { priceImpact: BigNumber }) => {
   let colorClassName
   let labelText
-  // TODO: Check this
-  // let priceImpactBP = priceImpact
-  //   ? Number(formatBNToString(priceImpact.mul(BigNumber.from(-100)), 18, 2))
-  //   : 0
-  // let priceImpactBP =
-  //   priceImpact && Number(formatBNToString(priceImpact.mul(100), 18, 2))
 
-  // console.log(`priceImpact, bp`, priceImpactBP)
-  // console.log(`priceImpact, bp`, priceImpactBP2)
+  let receivedPriceImpactPercentOfInput =
+    priceImpact && Number(formatBNToString(priceImpact.mul(100), 18, 2))
 
-  // recalculate priceImpactBP based on impact
-  let priceImpactBP = priceImpact &&
-  if (priceImpactBP > 0) {
+  let priceImpactBP =
+    receivedPriceImpactPercentOfInput &&
+    Number((100 - receivedPriceImpactPercentOfInput).toFixed(2))
+
+  if (priceImpactBP < 0) {
     colorClassName = 'text-green-500'
     labelText = 'Bonus'
   } else {

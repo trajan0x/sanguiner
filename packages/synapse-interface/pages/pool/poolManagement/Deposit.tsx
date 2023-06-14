@@ -91,7 +91,11 @@ const Deposit = ({
       ? pool.poolTokens[wethIndex].addresses[chainId]
       : null
 
-    function replaceKey(obj, oldKey, newKey) {
+    function replaceKey(
+      obj: Record<string, BigNumber>,
+      oldKey: string,
+      newKey: string
+    ) {
       if (obj.hasOwnProperty(oldKey)) {
         obj[newKey] = obj[oldKey]
         delete obj[oldKey]
@@ -103,7 +107,6 @@ const Deposit = ({
       ? replaceKey(filteredInputValue, nativeEthAddress, wethAddress)
       : filteredInputValue
 
-    console.log('transformedInput: ', transformedInput)
     return transformedInput
   }
 
@@ -129,20 +132,6 @@ const Deposit = ({
             input
           )
 
-        // console.log('routerAddress:', routerAddress)
-        // console.log('synapseSDK:', synapseSDK)
-        // console.log('test: ', test)
-        // console.log('chainId: ', chainId)
-
-        // console.log(
-        //   'filteredInputValue[0].isZero(): ',
-        //   filteredInputValue.bn[0].isZero()
-        // )
-        // console.log(
-        //   'filteredInputValue[1].isZero(): ',
-        //   filteredInputValue.bn[1].isZero()
-        // )
-
         let allowances: Record<string, BigNumber> = {}
         for (const [tokenAddress, value] of Object.entries(
           filteredInputValue.bn
@@ -161,35 +150,11 @@ const Deposit = ({
           Object.values(filteredInputValue.bn),
           true
         )
-        // minToMint = subtractSlippage(minToMint, slippageSelected, slippageCustom)
-
-        // console.log(`tokenInput`, tokenInputAmount)
-        // console.log(`tokenoutput`, tokenOutputAmount)
 
         const p2 = calculatePriceImpact(tokenInputAmount, tokenOutputAmount)
-
-        // console.log(`p2, p2`, p2)
-
         const priceImpact = calculateExchangeRate(inputSum, 18, amount, 18)
 
-        console.log('amount: ', amount)
-        console.log('inputSum: ', inputSum)
-        console.log('priceImpact:', priceImpact)
-
-        // TODO: DOUBLE CHECK THIS
-
-        // let priceImpactBP = priceImpact
-        //   ? Number(
-        //       formatBNToString(priceImpact.mul(BigNumber.from(-100)), 18, 2)
-        //     )
-        //   : 0
-        // let priceImpactBP2 = Number(formatBNToString(p2.mul(100), 18, 2))
-
-        // console.log(`priceImpactBP`, priceImpactBP)
-        // console.log(`priceImpactBp2`, priceImpactBP2)
-
         setDepositQuote({
-          // priceImpact: p2,
           priceImpact: priceImpact,
           allowances,
           routerAddress: poolAddress,
@@ -223,11 +188,6 @@ const Deposit = ({
   }, [inputValue, pool, chainId, address])
 
   useEffect(() => {
-    console.log(`depositQuote`, depositQuote)
-    console.log(
-      `depositQuote,priceImpact?.gt(Zero)`,
-      depositQuote.priceImpact?.gt(Zero)
-    )
     if (depositQuote.priceImpact && !depositQuote.priceImpact?.eq(Zero)) {
       setShowPriceImpact(true)
     } else {
