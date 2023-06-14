@@ -1,13 +1,14 @@
 import Grid from '@tw/Grid'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/router'
-import { useEffect, useState, useMemo } from 'react'
 import { AddressZero, Zero } from '@ethersproject/constants'
 import { BigNumber } from '@ethersproject/bignumber'
 import { fetchSigner, switchNetwork } from '@wagmi/core'
+import { useWatchPendingTransactions } from 'wagmi'
 import { sortByTokenBalance, sortByVisibilityRank } from '@utils/sortTokens'
 import { calculateExchangeRate } from '@utils/calculateExchangeRate'
 import ExchangeRateInfo from '@components/ExchangeRateInfo'
-import { TransactionButton } from '@components/buttons/SubmitTxButton'
+import { TransactionButton } from '@/components/buttons/TransactionButton'
 import BridgeInputContainer from '../../components/input/TokenAmountInput/index'
 import { approveToken } from '@/utils/approveToken'
 import { validateAndParseAddress } from '@utils/validateAndParseAddress'
@@ -15,6 +16,7 @@ import { formatBNToString } from '@utils/bignumber/format'
 import { commify } from '@ethersproject/units'
 import { erc20ABI } from 'wagmi'
 import { Contract } from 'ethers'
+import { subtractSlippage } from '@utils/slippage'
 import { ChainSlideOver } from '@/components/misc/ChainSlideOver'
 import { TokenSlideOver } from '@/components/misc/TokenSlideOver'
 import { Token } from '@/utils/types'
@@ -26,9 +28,12 @@ import { timeout } from '@/utils/timeout'
 import { Transition } from '@headlessui/react'
 import { COIN_SLIDE_OVER_PROPS } from '@styles/transitions'
 import Card from '@tw/Card'
-import { SwapQuote } from '@types'
+import { SwapQuote, Query } from '@types'
 import { IMPAIRED_CHAINS } from '@/constants/impairedChains'
 import { CHAINS_BY_ID } from '@constants/chains'
+import { toast } from 'react-hot-toast'
+import { txErrorHandler } from '@/utils/txErrorHandler'
+import ExplorerToastLink from '@/components/ExplorerToastLink'
 
 import {
   DEFAULT_FROM_TOKEN,
@@ -66,6 +71,13 @@ const SwapCard = ({
   const [displayType, setDisplayType] = useState(undefined)
   const [fromTokenBalance, setFromTokenBalance] = useState<BigNumber>(Zero)
   const [validChainId, setValidChainId] = useState(true)
+  const [swapTxnHash, setSwapTxnHash] = useState<string>('')
+  const [approveTx, setApproveTx] = useState<string>(null)
+
+  let pendingPopup: any
+  let successPopup: any
+  let errorPopup: string
+
   /*
   useEffect Trigger: onMount
   - Gets current network connected and sets it as the state.
@@ -80,6 +92,17 @@ const SwapCard = ({
       clearInterval(interval)
     }
   }, [])
+
+  /*
+  useEffect Trigger: fromInput
+  - Resets approve txn status if user input changes after amount is approved
+  */
+
+  useEffect(() => {
+    if (approveTx) {
+      setApproveTx(null)
+    }
+  }, [fromInput])
 
   /*
   useEffect Trigger: fromToken, fromTokens
@@ -152,7 +175,7 @@ const SwapCard = ({
       setFromTokens(tokens)
     })
     return
-  }, [connectedChainId])
+  }, [connectedChainId, swapTxnHash, address])
 
   /*
   useEffect Triggers: toToken, fromInput, toChainId, time
@@ -163,7 +186,7 @@ const SwapCard = ({
     let isCancelled = false
 
     const handleChange = async () => {
-      await timeout(1000)
+      // await timeout(1000)
       if (
         connectedChainId &&
         String(fromToken.addresses[connectedChainId]) &&
@@ -297,7 +320,6 @@ const SwapCard = ({
       wallet
     )
     const allowance = await erc20.allowance(address, routerAddress)
-    console.log('allowance from getCurrentTokenAllowance: ', allowance)
     return allowance
   }
 
@@ -338,61 +360,84 @@ const SwapCard = ({
   }
 
   /*
+  useEffect triggers: address, popup
+  - will dismiss toast asking user to connect wallet once wallet has been connected
+  */
+  useEffect(() => {
+    if (address && errorPopup) {
+      toast.dismiss(errorPopup)
+    }
+  }, [address, errorPopup])
+
+  /*
   Function: handleChainChange
   - Produces and alert if chain not connected (upgrade to toaster)
   - Handles flipping to and from chains if flag is set to true
   - Handles altering the chain state for origin or destination depending on the type specified.
   */
-  const handleChainChange = async (
-    chainId: number,
-    flip: boolean,
-    type: 'from' | 'to'
-  ) => {
-    if (address === undefined) {
-      return alert('Please connect your wallet')
-    }
-    const desiredChainId = Number(chainId)
-    const res = switchNetwork({ chainId: desiredChainId })
-      .then((res) => {
-        if (fromInput.string !== '') {
-          setIsQuoteLoading(true)
-        }
-        return res
-      })
-      .catch(() => {
-        return undefined
-      })
-    if (res === undefined) {
-      console.log("can't switch network, chainId: ", chainId)
-      return
-    }
-    if (!SWAPABLE_TOKENS[desiredChainId]) {
-      return
-    }
-    setValidChainId(true)
+  const handleChainChange = useCallback(
+    async (chainId: number, flip: boolean, type: 'from' | 'to') => {
+      if (address === undefined) {
+        errorPopup = toast.error('Please connect your wallet', {
+          id: 'bridge-connect-wallet',
+          duration: 20000,
+        })
+        return errorPopup
+      }
+      const desiredChainId = Number(chainId)
 
-    const swapableFromTokens: Token[] = sortByVisibilityRank(
-      BRIDGE_SWAPABLE_TOKENS_BY_TYPE[chainId][String(fromToken.swapableType)]
-    )
-    let tempFromToken: Token = fromToken
+      const res = await switchNetwork({ chainId: desiredChainId })
+        .then((res) => {
+          if (fromInput.string !== '') {
+            setIsQuoteLoading(true)
+          }
+          return res
+        })
+        .catch((error) => {
+          return error && undefined
+        })
 
-    if (swapableFromTokens?.length > 0) {
-      tempFromToken = getMostCommonSwapableType(chainId)
-    }
-    const { swapableToken, swapableTokens } = handleNewFromToken(
-      tempFromToken,
-      toToken.symbol,
-      desiredChainId
-    )
-    resetTokenPermutation(
-      tempFromToken,
-      swapableToken,
-      swapableTokens,
-      tempFromToken.symbol,
-      swapableToken?.symbol
-    )
-    return
-  }
+      if (res === undefined) {
+        console.log("can't switch network, chainId: ", chainId)
+        return
+      }
+      if (!SWAPABLE_TOKENS[desiredChainId]) {
+        return
+      }
+      setValidChainId(true)
+
+      const swapableFromTokens: Token[] = sortByVisibilityRank(
+        BRIDGE_SWAPABLE_TOKENS_BY_TYPE[chainId][String(fromToken.swapableType)]
+      )
+      let tempFromToken: Token = fromToken
+
+      if (swapableFromTokens?.length > 0) {
+        tempFromToken = getMostCommonSwapableType(chainId)
+      }
+      const { swapableToken, swapableTokens } = handleNewFromToken(
+        tempFromToken,
+        toToken.symbol,
+        desiredChainId
+      )
+      resetTokenPermutation(
+        tempFromToken,
+        swapableToken,
+        swapableTokens,
+        tempFromToken.symbol,
+        swapableToken?.symbol
+      )
+      return
+    },
+    [
+      fromToken,
+      toToken,
+      connectedChainId,
+      address,
+      isQuoteLoading,
+      handleNewFromToken,
+      switchNetwork,
+    ]
+  )
 
   /*
     Function:handleTokenChange
@@ -446,7 +491,6 @@ const SwapCard = ({
         toToken.addresses[connectedChainId],
         fromInput.bigNum
       )
-      // console.log('query: ', query.minAmountOut.toString())
       if (!(query && maxAmountOut)) {
         setSwapQuote(EMPTY_SWAP_QUOTE_ZERO)
         setIsQuoteLoading(false)
@@ -459,6 +503,15 @@ const SwapCard = ({
         address === undefined
           ? Zero
           : await getCurrentTokenAllowance(routerAddress)
+
+      const minWithSlippage = subtractSlippage(
+        query?.minAmountOut ?? Zero,
+        'ONE_TENTH',
+        null
+      )
+      // TODO 1) make dynamic 2) clean up
+      let newOriginQuery = { ...query }
+      newOriginQuery.minAmountOut = minWithSlippage
 
       setSwapQuote({
         outputAmount: toValueBigNum,
@@ -474,13 +527,14 @@ const SwapCard = ({
           toToken.decimals[connectedChainId]
         ),
         delta: maxAmountOut,
-        quote: query,
+        quote: newOriginQuery,
       })
       setIsQuoteLoading(false)
       return
     } catch (error) {
       setIsQuoteLoading(false)
       console.log(`Quote failed with error: ${error}`)
+      return
     }
   }
 
@@ -490,6 +544,12 @@ const SwapCard = ({
   - Only executes if token has already been approved.
    */
   const executeSwap = async () => {
+    const currentChainName = CHAINS_BY_ID[connectedChainId]?.name
+    pendingPopup = toast(
+      `Initiating swap from ${fromToken.symbol} to ${toToken.symbol} on ${currentChainName}`,
+      { id: 'swap-in-progress-popup', duration: Infinity }
+    )
+
     try {
       const wallet = await fetchSigner({
         chainId: connectedChainId,
@@ -509,15 +569,44 @@ const SwapCard = ({
           ? { data: data.data, to: data.to, value: fromInput.bigNum }
           : data
       const tx = await wallet.sendTransaction(payload)
+
       try {
-        await tx.wait()
+        const successTx = await tx.wait()
+
+        setSwapTxnHash(successTx?.transactionHash)
+
+        toast.dismiss(pendingPopup)
+
         console.log(`Transaction mined successfully: ${tx.hash}`)
+
+        const successToastContent = (
+          <div>
+            <div>
+              Successfully swapped from {fromToken.symbol} to {toToken.symbol}{' '}
+              on {currentChainName}
+            </div>
+            <ExplorerToastLink
+              transactionHash={tx?.hash ?? AddressZero}
+              chainId={connectedChainId}
+            />
+          </div>
+        )
+
+        successPopup = toast.success(successToastContent, {
+          id: 'swap-successful-popup',
+          duration: 10000,
+        })
+
+        resetRates()
         return tx
       } catch (error) {
+        toast.dismiss(pendingPopup)
         console.log(`Transaction failed with error: ${error}`)
       }
     } catch (error) {
       console.log(`Swap Execution failed with error: ${error}`)
+      toast.dismiss(pendingPopup)
+      txErrorHandler(error)
     }
   }
 
@@ -534,84 +623,136 @@ const SwapCard = ({
     `,
   }
 
-  console.log('swapQuote?.allowance: ', swapQuote?.allowance)
+  const isFromBalanceEnough = fromTokenBalance?.gte(fromInput.bigNum)
+  let destAddrNotValid: boolean
 
-  // TODO make this a function
-  const ActionButton = useMemo(() => {
-    let destAddrNotValid
-    let btnLabel
-    let btnClassName = ''
-    let pendingLabel = 'Swapping funds...'
-    let buttonAction = () => executeSwap()
-    let postButtonAction = () => resetRates()
-    const isFromBalanceEnough = fromTokenBalance?.gte(fromInput.bigNum)
+  const getButtonProperties = () => {
+    let properties = {
+      label: `Enter amount to swap`,
+      pendingLabel: 'Swapping funds...',
+      className: '',
+      disabled: true,
+      buttonAction: () => executeSwap(),
+      postButtonAction: () => resetRates(),
+    }
+
+    const isInputZero = checkStringIfOnlyZeroes(fromInput?.string)
 
     if (error) {
-      btnLabel = error
-    } else if (!isFromBalanceEnough) {
-      btnLabel = `Insufficient ${fromToken.symbol} Balance`
-    } else if (IMPAIRED_CHAINS[connectedChainId]?.disabled) {
-      btnLabel = `${CHAINS_BY_ID[connectedChainId]?.name} is currently paused`
-    } else if (fromInput.bigNum.eq(0)) {
-      btnLabel = `Amount must be greater than fee`
-    } else if (
+      properties.label = error
+      properties.disabled = true
+      return properties
+    }
+
+    if (isInputZero || fromInput?.bigNum?.eq(0)) {
+      properties.label = `Enter amount to swap`
+      properties.disabled = true
+      return properties
+    }
+
+    if (!isFromBalanceEnough) {
+      properties.label = `Insufficient ${fromToken.symbol} Balance`
+      properties.disabled = true
+      return properties
+    }
+
+    if (IMPAIRED_CHAINS[connectedChainId]?.disabled) {
+      properties.label = `${CHAINS_BY_ID[connectedChainId]?.name} is currently paused`
+      properties.disabled = true
+      return properties
+    }
+
+    if (fromInput.bigNum.eq(0)) {
+      properties.label = `Amount must be greater than fee`
+      properties.disabled = true
+      return properties
+    }
+
+    if (
+      !fromInput?.bigNum?.eq(0) &&
+      fromToken?.addresses[connectedChainId] !== '' &&
+      fromToken?.addresses[connectedChainId] !== AddressZero &&
       swapQuote?.allowance &&
-      swapQuote?.allowance?.lt(fromInput.bigNum)
+      swapQuote?.allowance?.lt(fromInput.bigNum) &&
+      !approveTx
     ) {
-      buttonAction = () =>
+      properties.buttonAction = () =>
         approveToken(
           swapQuote.routerAddress,
           connectedChainId,
           fromToken.addresses[connectedChainId]
         )
-      btnLabel = `Approve ${fromToken.symbol}`
-      pendingLabel = `Approving ${fromToken.symbol}`
-      btnClassName = 'from-[#feba06] to-[#FEC737]'
-      postButtonAction = () => setTime(0)
-    } else if (
-      destinationAddress &&
-      !validateAndParseAddress(destinationAddress)
-    ) {
-      destAddrNotValid = true
-      btnLabel = 'Invalid Destination Address'
-    } else {
-      btnLabel = swapQuote.outputAmount.eq(0)
-        ? 'Enter amount to swap'
-        : 'Swap your funds'
-
-      const numExchangeRate = Number(
-        formatBNToString(swapQuote.exchangeRate, 18, 4)
-      )
-
-      if (
-        !fromInput.bigNum.eq(0) &&
-        (numExchangeRate < 0.95 || numExchangeRate > 1.05)
-      ) {
-        btnClassName = 'from-[#fe064a] to-[#fe5281]'
-        btnLabel = 'Slippage High - Swap Anyway?'
+      properties.label = `Approve ${fromToken.symbol}`
+      properties.pendingLabel = `Approving ${fromToken.symbol}`
+      properties.className = 'from-[#feba06] to-[#FEC737]'
+      properties.disabled = false
+      properties.postButtonAction = () => {
+        setApproveTx('approved')
       }
+      return properties
     }
 
+    if (destinationAddress && !validateAndParseAddress(destinationAddress)) {
+      destAddrNotValid = true
+      properties.label = 'Invalid Destination Address'
+      properties.disabled = true
+      return properties
+    }
+
+    // default case
+    properties.label = 'Swap your funds'
+    properties.disabled = false
+
+    const numExchangeRate = swapQuote?.exchangeRate
+      ? Number(formatBNToString(swapQuote.exchangeRate, 18, 4))
+      : 0
+
+    if (
+      !fromInput.bigNum.eq(0) &&
+      numExchangeRate !== 0 &&
+      (numExchangeRate < 0.95 || numExchangeRate > 1.05)
+    ) {
+      properties.className = 'from-[#fe064a] to-[#fe5281]'
+      properties.label = 'Slippage High - Swap Anyway?'
+    }
+
+    return properties
+  }
+
+  const {
+    label: btnLabel,
+    pendingLabel,
+    className: btnClassName,
+    buttonAction,
+    postButtonAction,
+    disabled,
+  } = useMemo(getButtonProperties, [
+    isFromBalanceEnough,
+    address,
+    fromInput,
+    fromToken,
+    swapQuote,
+    isQuoteLoading,
+    destinationAddress,
+    error,
+    approveTx,
+  ])
+
+  const ActionButton = useMemo(() => {
     return (
       <TransactionButton
-        className={btnClassName}
-        disabled={
-          swapQuote.outputAmount.eq(0) ||
-          !isFromBalanceEnough ||
-          error != null ||
-          destAddrNotValid ||
-          IMPAIRED_CHAINS[connectedChainId]?.disabled
-        }
         onClick={() => buttonAction()}
+        disabled={disabled || destAddrNotValid}
+        className={btnClassName}
+        label={btnLabel}
+        pendingLabel={pendingLabel}
+        chainId={connectedChainId}
         onSuccess={() => {
           postButtonAction()
         }}
-        chainId={connectedChainId}
-        label={btnLabel}
-        pendingLabel={pendingLabel}
       />
     )
-  }, [fromInput, time, swapQuote, error])
+  }, [fromInput, time, swapQuote, error, approveTx])
 
   /*
   useEffect Triggers: fromInput
@@ -703,6 +844,7 @@ const SwapCard = ({
           toToken={toToken}
           exchangeRate={swapQuote.exchangeRate}
           toChainId={connectedChainId}
+          showGasDrop={false}
         />
         <div className="px-2 py-2 md:px-0 md:py-4">{ActionButton}</div>
       </div>

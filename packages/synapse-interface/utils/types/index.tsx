@@ -26,6 +26,14 @@ export type PoolToken = {
   balanceStr: string
   token: Token
   isLp: boolean
+  rawBalance: BigNumber
+}
+export type Query = [string, string, BigNumber, BigNumber, string] & {
+  swapAdapter: string
+  tokenOut: string
+  minAmountOut: BigNumber
+  deadline: BigNumber
+  rawParams: string
 }
 export type PoolUserData = {
   name: string
@@ -34,6 +42,7 @@ export type PoolUserData = {
   tokens: PoolToken[]
   lpTokenBalance: BigNumber
   lpTokenBalanceStr: string
+  nativeTokens?: any
 }
 export type PoolData = {
   name: string
@@ -44,6 +53,7 @@ export type PoolData = {
   totalLockedUSDStr: string
   virtualPrice: BigNumber
   virtualPriceStr: string
+  nativeTokens?: any
 }
 
 export type BridgeQuote = {
@@ -165,6 +175,7 @@ export class Token {
     | 'cyan'
     | 'red'
   priceUnits?: string
+  notStake?: boolean
   constructor({
     addresses,
     wrapperAddresses,
@@ -199,6 +210,7 @@ export class Token {
     priorityPool,
     color,
     priceUnits,
+    notStake,
   }: {
     addresses: { [x: number]: string }
     wrapperAddresses?: Record<number, string>
@@ -244,6 +256,7 @@ export class Token {
       | 'cyan'
       | 'red'
     priceUnits?: string
+    notStake?: boolean
   }) {
     const isMetaVar = Boolean(swapDepositAddresses || forceMeta)
     this.addresses = validateAddresses(addresses)
@@ -281,6 +294,7 @@ export class Token {
     this.priorityPool = priorityPool ?? false
     this.color = color ?? 'gray'
     this.priceUnits = priceUnits ?? 'USD'
+    this.notStake = notStake ?? false
   }
 }
 
