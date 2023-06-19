@@ -1,0 +1,232 @@
+# Default values for cctp-relayer.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/synapsecns/sanguine/cctp-relayer
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "6e3887fc2a05aff0d159453cedbfbe5024b910bf" # TODO update
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+labels:
+  type: "cctp-relayer"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template.
+  name: ""
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+initialDelaySeconds: 20
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+definitions:
+  - env: &default_env
+    - name: GOLOG_LOG_FMT
+      value: "json"
+    - name: GOLOG_LOG_LEVEL
+      value: "error"
+    - name: GOMEMLIMIT
+      value: "2GiB"
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: METRICS_HANDLER
+      value: "jaeger"
+    - name: JAEGER_ENDPOINT
+      value: "http://cctp-relayer-devnet-jaeger-collector:14268/api/traces"
+
+relayer:
+  enabled: true
+  args: ["relayer-run", "--config=/config/relayer_config.yaml", "--metrics-port=5080"]
+  podAnnotations: {}
+  nodeSelector: {}
+  podSecurityContext: {}
+  affinity: {}
+  env: *default_env
+  tolerations: {}
+  extraInitContainers:
+    - name: wait-for-omnirpc
+      image: busybox:latest
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', 'until nc -vz ${POD_NAME}.${POD_NAMESPACE} 80; do echo "Waiting for omnirpc..."; sleep 1; done;']
+      env:
+        - name: POD_NAME
+          value: cctp-relayer-omnirpc
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+    - name: wait-for-mysql
+      image: busybox:latest
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', 'until nc -vz ${POD_NAME}.${POD_NAMESPACE} 3306; do echo "Waiting for mysql..."; sleep 1; done;']
+      env:
+        - name: POD_NAME
+          value: cctp-relayer-mysql
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+    # This is only used for remote scribe.
+    - name: wait-for-scribe
+      image: busybox:latest
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', 'until nc -vz ${POD_NAME}.${POD_NAMESPACE} 80; do echo "Waiting for scribe..."; sleep 1; done;']
+      env:
+        - name: POD_NAME
+          value: executor-scribe
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+
+mysql:
+  # uncomment these to speedup builds on arm64 based architectures
+  #  image:
+  #    registry: ghcr.io
+  #    repository: zcube/bitnami-compat/mysql
+  #    tag: 8.0-debian-11-r54
+  enabled: true
+  fullnameOverride: cctp-relayer-mysql
+  nameOverride: cctp-relayer-mysql
+  architecture: standalone
+  networkPolicy:
+    enabled: true
+  metrics:
+    enabled: false
+  auth:
+    createDatabase: true
+    database: cctp-relayer
+    # Note: this should be used in production instead of auth.password
+    # existingSecret: mysql-password
+    rootPassword: MysqlPassword
+
+jaeger:
+  enabled: true
+  provisionDataStore:
+    cassandra: false
+  allInOne:
+    enabled: true
+  storage:
+    type: none
+  agent:
+    enabled: false
+  collector:
+    enabled: false
+  query:
+    enabled: false
+
+omnirpc:
+  # this can be remote in production, we just want to use the public rpc servers here
+  enabled: true
+  fullnameOverride: cctp-relayer-omnirpc
+  replicaCount: 3
+  env: *default_env
+
+scribe:
+  enabled: true
+  indexer:
+    env: *default_env
+  server:
+    env: *default_env
+  image:
+    tag: "6e3887fc2a05aff0d159453cedbfbe5024b910bf"
+  fullnameOverride: executor-scribe
+  files:
+    relayer_config.yaml: |-
+      chains:
+        - chain_id: 1
+          synapse_cctp_address: <addr>
+        - chain_id: 43114
+          synapse_cctp_address: <addr>
+      base_omnirpc_url: "https://rpc.interoperability.institute/confirmations"
+      unbonded_signer:
+        type: "File"
+        file: "/config/relayer_signer.txt"
+      embedded_scribe_config:
+        chains:
+          - chain_id: 1
+            required_confirmations: 50
+            contract_sub_chunk_size: 1000
+            contract_chunk_size: 1000
+            store_concurrency: 1
+            store_concurrency_threshold: 500
+            contracts:
+              - address: 0xF3773BE7cb59235Ced272cF324aaeb0A4115280f
+                start_block: 40189736
+              - address: 0xde5BB62aBCF588EC200674757EDB2f6889aCd065
+                start_block: 40189736
+          - chain_id: 43114
+            required_confirmations: 50
+            contract_sub_chunk_size: 2000
+            contract_chunk_size: 10000
+            store_concurrency: 1
+            store_concurrency_threshold: 500
+            contracts:
+              - address: 0xF3773BE7cb59235Ced272cF324aaeb0A4115280f
+                start_block: 27262747
+              - address: 0xde5BB62aBCF588EC200674757EDB2f6889aCd065
+                start_block: 27262744
+      http_backoff_initial_interval_ms: 1000
+      http_backoff_max_elapsed_time_ms: 300000
+      submitter_config:
+        skip_batching: true
+        maxGasPrice: 250000000000
+        bump_interval_seconds: 60
+        gas_bump_percentage: 10
+        is_l2: false
+        dynamic_gas_estimate: true
+        supports_eip1559: true
+
+relayer_files:
+  relayer_signer.txt: |-
+    16c909570a212af6a328a1cf594a20d7cf6edf56fafa0b50967f2039b1f68445
