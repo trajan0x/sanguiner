@@ -493,6 +493,17 @@ entries:
     urls:
     - https://github.com/synapsecns/sanguine/releases/download/agents-0.1.0/agents-0.1.0.tgz
     version: 0.1.0
+  cctp:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2023-06-28T02:19:57.551825666Z"
+    description: A cctp chart
+    digest: 6077103a98218c069d8080cb070deff146b960947cc5a504a9f062560e07b31a
+    name: cctp
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/cctp-0.1.0/cctp-0.1.0.tgz
+    version: 0.1.0
   explorer:
   - apiVersion: v2
     appVersion: 1.16.0
@@ -963,4 +974,4 @@ entries:
     urls:
     - https://github.com/synapsecns/sanguine/releases/download/scribe-0.1.0/scribe-0.1.0.tgz
     version: 0.1.0
-generated: "2023-05-28T07:59:33.193734458Z"
+generated: "2023-06-28T02:19:57.55202348Z"
