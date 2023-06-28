@@ -41,7 +41,6 @@ func (t *txSubmitterImpl) processQueue(parentCtx context.Context) (err error) {
 	defer func() {
 		metrics.EndSpanWithErr(span, err)
 	}()
-	span.AddEvent("testEvent", trace.WithAttributes(attribute.String("imatest", "yo")))
 
 	// TODO: parallelize resubmission by chainid, maybe w/ a locker per chain
 	var wg sync.WaitGroup
