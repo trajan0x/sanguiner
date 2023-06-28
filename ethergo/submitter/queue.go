@@ -18,12 +18,7 @@ import (
 )
 
 // runSelector runs the selector start loop.
-func (t *txSubmitterImpl) runSelector(parentCtx context.Context, i int) (shouldExit bool, err error) {
-	ctx, span := t.metrics.Tracer().Start(parentCtx, "submitter.Start", trace.WithAttributes(attribute.Int("i", i)))
-	defer func() {
-		metrics.EndSpanWithErr(span, err)
-	}()
-
+func (t *txSubmitterImpl) runSelector(ctx context.Context) (shouldExit bool, err error) {
 	select {
 	case <-ctx.Done():
 		return true, fmt.Errorf("context done: %w", ctx.Err())

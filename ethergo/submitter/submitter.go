@@ -99,7 +99,7 @@ func (t *txSubmitterImpl) Start(ctx context.Context) error {
 	i := 0
 	for {
 		i++
-		shouldExit, err := t.runSelector(ctx, i)
+		shouldExit, err := t.runSelector(ctx)
 		if err != nil {
 			logger.Warn(err)
 		}
