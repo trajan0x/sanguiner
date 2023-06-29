@@ -23,8 +23,8 @@ contract DeployerUtils is Script {
     string private constant DEPLOYMENTS = "deployments/";
     string private constant DEPLOY_CONFIGS = "script/configs/";
 
-    // TODO: this is only deployed on 7 chains, deploy our own factory for prod deployments
-    ICreate3Factory internal constant FACTORY = ICreate3Factory(0x9fBB3DF7C40Da2e5A0dE984fFE2CCB7C47cd0ABf);
+    // TODO: this is only deployed on Avalanche Fuji, Ethereum Sepolia and Synapse Sepolia
+    ICreate3Factory internal constant FACTORY = ICreate3Factory(0x68F48765A1fBCd59444857289AD3B5b58066dB7a);
 
     /// @dev Whether the script will be broadcasted or not
     bool internal isBroadcasted = false;
@@ -73,7 +73,8 @@ contract DeployerUtils is Script {
 
     /// @notice Returns name of the current chain.
     function getChainAlias() public returns (string memory) {
-        return getChain(block.chainid).chainAlias;
+        // Don't do this in production: workaround for forge not picking this up from foundry.toml
+        return block.chainid == 901 ? "synchain_sepolia" : getChain(block.chainid).chainAlias;
     }
 
     // ════════════════════════════════════════════════ DEPLOYMENTS ════════════════════════════════════════════════════
