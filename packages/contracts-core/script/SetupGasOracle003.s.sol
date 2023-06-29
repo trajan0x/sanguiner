@@ -34,8 +34,14 @@ contract SetupGasOracle003Script is DeployerUtils {
 
     GasOracle public gasOracle;
 
+    // The environment to configure Gas Oracle on. Possible values are:
+    // - Messaging003
+    // - Messaging003Testnet
+    string public environment;
+
     constructor() {
         setupPK("MESSAGING_DEPLOYER_PRIVATE_KEY");
+        environment = vm.envString("MESSAGING_ENVIRONMENT");
     }
 
     /// @dev Function to exclude script from coverage report
@@ -48,7 +54,7 @@ contract SetupGasOracle003Script is DeployerUtils {
     /// forge script script/SetupGasOracle003.s.sol -f chainName
     function run() external {
         startBroadcast(true);
-        gasDataConfig = loadGlobalDeployConfig("Messaging003GasData");
+        gasDataConfig = loadGlobalDeployConfig(string.concat(environment, "GasData"));
         gasOracle = GasOracle(loadDeployment(GAS_ORACLE));
         uint256[] memory domains = gasDataConfig.readUintArray(".domains");
         for (uint256 i = 0; i < domains.length; ++i) {

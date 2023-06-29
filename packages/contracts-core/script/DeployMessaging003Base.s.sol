@@ -42,10 +42,16 @@ abstract contract DeployMessaging003BaseScript is DeployerUtils {
     uint32 public localDomain;
     string public globalConfig;
 
+    // The environment to deploy to. Possible values are:
+    // - Messaging003
+    // - Messaging003Testnet
+    string public environment;
+
     constructor() {
         setupPK("MESSAGING_DEPLOYER_PRIVATE_KEY");
         localDomain = uint32(block.chainid);
-        deploymentSalt = keccak256("Messaging003");
+        environment = vm.envString("MESSAGING_ENVIRONMENT");
+        deploymentSalt = keccak256(bytes(environment));
     }
 
     /// @dev Function to exclude script from coverage report
@@ -83,7 +89,7 @@ abstract contract DeployMessaging003BaseScript is DeployerUtils {
     /// Will save the deployments, if script is being broadcasted.
     function _deploy(bool _isBroadcasted) internal {
         startBroadcast(_isBroadcasted);
-        globalConfig = loadGlobalDeployConfig("Messaging003");
+        globalConfig = loadGlobalDeployConfig(environment);
         // Predict deployments
         agentManager = predictFactoryDeployment(agentManagerName());
         statementInbox = predictFactoryDeployment(statementInboxName());
@@ -378,7 +384,7 @@ abstract contract DeployMessaging003BaseScript is DeployerUtils {
     function _getInitialAgentRoot() internal returns (bytes32) {
         // No saved agent root exists when deploying to SynChain
         if (isSynapseChain()) return 0;
-        string memory agentRootConfig = loadGlobalDeployConfig("Messaging003AgentRoot");
+        string memory agentRootConfig = loadGlobalDeployConfig(string.concat(environment, "AgentRoot"));
         return agentRootConfig.readBytes32(".initialAgentRoot");
     }
 }

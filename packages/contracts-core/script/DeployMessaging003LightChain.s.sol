@@ -68,7 +68,7 @@ contract DeployMessaging003LightChainScript is DeployMessaging003BaseScript {
     /// or that they could be added to LightManager.
     function _checkAgents() internal override {
         console.log("Adding Agents (simulation)");
-        string memory agentRootConfig = loadGlobalDeployConfig("Messaging003AgentRoot");
+        string memory agentRootConfig = loadGlobalDeployConfig(string.concat(environment, "AgentRoot"));
         uint256[] memory domains = globalConfig.readUintArray(".domains");
         // Agent indexes start from 1
         uint256 expectedIndex = 1;
