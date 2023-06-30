@@ -33,4 +33,9 @@ docker-clean: ## stops and removes all containers at once
 	docker ps -aq | xargs docker stop | xargs docker rm
 	docker network prune
 
+signoz-up: ## setup signoz
+	# TODO: should check ports, warn if taken and also make sure user has pulled submodules
+	# note: if your'e having trouble check kubefwd
+	docker-compose -f contrib/external/signoz/deploy/docker/clickhouse-setup/docker-compose.yaml up -d
+
 .PHONY: full-reset check_reset
