@@ -3,6 +3,33 @@ entries:
   agents:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2023-07-05T21:20:54.016694746Z"
+    dependencies:
+    - condition: mysql.enabled
+      name: mysql
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.3.2
+    - condition: omnirpc.enabled
+      name: omnirpc
+      repository: file://../omnirpc/
+      version: 0.2.5
+    - condition: scribe.enabled
+      name: scribe
+      repository: file://../scribe/
+      version: 0.2.9
+    - condition: jaeger.enabled
+      name: jaeger
+      repository: https://jaegertracing.github.io/helm-charts
+      version: 0.69.1
+    description: A Helm chart for Kubernetes
+    digest: d065aad107e72d8dadf047a3ee355c3662147ba1a08fec25655cc0976e3c673d
+    name: agents
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/agents-0.1.23/agents-0.1.23.tgz
+    version: 0.1.23
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2023-05-28T07:59:32.695340284Z"
     dependencies:
     - condition: mysql.enabled
@@ -746,6 +773,25 @@ entries:
   scribe:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2023-07-05T21:20:54.251606246Z"
+    dependencies:
+    - condition: mysql.enabled
+      name: mysql
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.3.2
+    - condition: omnirpc.enabled
+      name: omnirpc
+      repository: file://../omnirpc/
+      version: 0.2.5
+    description: A Helm chart for Kubernetes
+    digest: 8b626fb80dc24514de6e7c480783fd897f9dd0e8c0970dc44815f6ba0c6948a4
+    name: scribe
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/scribe-0.2.9/scribe-0.2.9.tgz
+    version: 0.2.9
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2023-05-28T07:59:33.193453847Z"
     dependencies:
     - condition: mysql.enabled
@@ -989,4 +1035,4 @@ entries:
     urls:
     - https://github.com/synapsecns/sanguine/releases/download/scribe-0.1.0/scribe-0.1.0.tgz
     version: 0.1.0
-generated: "2023-06-28T04:24:31.546384276Z"
+generated: "2023-07-05T21:20:54.252599244Z"
