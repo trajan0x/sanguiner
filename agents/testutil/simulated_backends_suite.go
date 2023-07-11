@@ -1,6 +1,10 @@
 package testutil
 
 import (
+	"math/big"
+	"sync"
+	"testing"
+
 	"github.com/Flaque/filet"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
@@ -36,9 +40,6 @@ import (
 	scribedb "github.com/synapsecns/sanguine/services/scribe/db"
 	scribesqlite "github.com/synapsecns/sanguine/services/scribe/db/datastore/sql/sqlite"
 	scribeMetadata "github.com/synapsecns/sanguine/services/scribe/metadata"
-	"math/big"
-	"sync"
-	"testing"
 )
 
 // SimulatedBackendsTestSuite can be used as the base for any test needing simulated backends
@@ -332,9 +333,20 @@ func (a *SimulatedBackendsTestSuite) SetupTest() {
 	}()
 	wg.Wait()
 
-	a.SetupSummit(a.TestDeployManager)
-	a.SetupDestination(a.TestDeployManager)
-	a.SetupOrigin(a.TestDeployManager)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		a.SetupSummit(a.TestDeployManager)
+	}()
+	go func() {
+		defer wg.Done()
+		a.SetupDestination(a.TestDeployManager)
+	}()
+	go func() {
+		defer wg.Done()
+		a.SetupOrigin(a.TestDeployManager)
+	}()
+	wg.Wait()
 
 	err := a.TestDeployManager.LoadHarnessContractsOnChains(
 		a.GetTestContext(),
