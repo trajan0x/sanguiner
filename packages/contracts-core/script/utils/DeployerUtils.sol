@@ -24,7 +24,7 @@ contract DeployerUtils is Script {
     string private constant DEPLOY_CONFIGS = "script/configs/";
 
     // TODO: this is only deployed on Avalanche Fuji, Ethereum Sepolia and Synapse Sepolia
-    ICreate3Factory internal constant FACTORY = ICreate3Factory(0x68F48765A1fBCd59444857289AD3B5b58066dB7a);
+    ICreate3Factory internal constant FACTORY = ICreate3Factory(0x7D5352B5d0C1d2Df42FF7462233252608A9174db);
 
     /// @dev Whether the script will be broadcasted or not
     bool internal isBroadcasted = false;
