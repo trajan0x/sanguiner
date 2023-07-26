@@ -26,7 +26,6 @@ export const InputContainer = () => {
   const [showValue, setShowValue] = useState('')
   const [hasMounted, setHasMounted] = useState(false)
   const previousBridgeTxHashesRef = useRef<string[]>([])
-  // const currentChainName = CHAINS_BY_ID[fromChainId]?.name
 
   useEffect(() => {
     setHasMounted(true)
