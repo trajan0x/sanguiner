@@ -456,16 +456,16 @@ func (g Guard) handleReceipt(ctx context.Context, log ethTypes.Log) error {
 		return fmt.Errorf("could not parse receipt accepted: %w", err)
 	}
 
-	isValid, err := g.domains[g.summitDomainID].Destination().IsValidReceipt(ctx, fraudReceipt.RcptPayload)
+	receipt, err := types.DecodeReceipt(fraudReceipt.RcptPayload)
+	if err != nil {
+		return fmt.Errorf("could not decode receipt: %w", err)
+	}
+	isValid, err := g.domains[receipt.Destination()].Destination().IsValidReceipt(ctx, fraudReceipt.RcptPayload)
 	if err != nil {
 		return fmt.Errorf("could not check validity of attestation: %w", err)
 	}
 
 	if !isValid {
-		receipt, err := types.DecodeReceipt(fraudReceipt.RcptPayload)
-		if err != nil {
-			return fmt.Errorf("could not decode receipt: %w", err)
-		}
 		// TODO: merge this logic once solidity interfaces are de-duped
 		if receipt.Destination() == g.summitDomainID {
 			_, err = g.domains[receipt.Destination()].Inbox().VerifyReceipt(ctx, g.unbondedSigner, fraudReceipt.RcptPayload, fraudReceipt.RcptSignature)
@@ -473,12 +473,10 @@ func (g Guard) handleReceipt(ctx context.Context, log ethTypes.Log) error {
 				return fmt.Errorf("could not verify receipt: %w", err)
 			}
 		} else {
-			tx, err := g.domains[receipt.Destination()].LightInbox().VerifyReceipt(ctx, g.unbondedSigner, fraudReceipt.RcptPayload, fraudReceipt.RcptSignature)
+			_, err = g.domains[receipt.Destination()].LightInbox().VerifyReceipt(ctx, g.unbondedSigner, fraudReceipt.RcptPayload, fraudReceipt.RcptSignature)
 			if err != nil {
 				return fmt.Errorf("could not verify receipt: %w", err)
 			}
-			fmt.Println("TXHASHA", tx.Hash().String())
-			time.Sleep(10 * time.Second)
 			rrReceipt, _, _, err := receipt.SignReceipt(ctx, g.bondedSigner, false)
 			if err != nil {
 				return fmt.Errorf("could not sign receipt: %w", err)
@@ -487,12 +485,10 @@ func (g Guard) handleReceipt(ctx context.Context, log ethTypes.Log) error {
 			if err != nil {
 				return fmt.Errorf("could not encode receipt: %w", err)
 			}
-			tx, err = g.domains[g.summitDomainID].Inbox().SubmitReceiptReport(ctx, g.unbondedSigner, fraudReceipt.RcptPayload, fraudReceipt.RcptSignature, rrReceiptBytes)
+			_, err = g.domains[g.summitDomainID].Inbox().SubmitReceiptReport(ctx, g.unbondedSigner, fraudReceipt.RcptPayload, fraudReceipt.RcptSignature, rrReceiptBytes)
 			if err != nil {
 				return fmt.Errorf("could not submit receipt report: %w", err)
 			}
-			fmt.Println("TXHASHB", tx.Hash().String())
-			time.Sleep(10 * time.Second)
 		}
 	}
 
