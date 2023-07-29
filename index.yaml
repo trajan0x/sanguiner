@@ -770,6 +770,17 @@ entries:
     urls:
     - https://github.com/synapsecns/sanguine/releases/download/omnirpc-0.1.0/omnirpc-0.1.0.tgz
     version: 0.1.0
+  promexporter:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2023-07-29T17:08:46.1889086Z"
+    description: A Helm chart for Kubernetes
+    digest: 0bb3189d4504f71a4c6bd43a0ee48dc89bf3c0aaec6ac796772dcf0de8137429
+    name: promexporter
+    type: application
+    urls:
+    - https://github.com/synapsecns/sanguine/releases/download/promexporter-0.1.0/promexporter-0.1.0.tgz
+    version: 0.1.0
   scribe:
   - apiVersion: v2
     appVersion: 1.16.0
@@ -1035,4 +1046,4 @@ entries:
     urls:
     - https://github.com/synapsecns/sanguine/releases/download/scribe-0.1.0/scribe-0.1.0.tgz
     version: 0.1.0
-generated: "2023-07-05T21:20:54.252599244Z"
+generated: "2023-07-29T17:08:46.189069301Z"
